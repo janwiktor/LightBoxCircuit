@@ -99,21 +99,22 @@ def draw_power_section(d):
     d.add(elm.Ground().color(CGND))
 
     # ── U2: LM2596S buck converter ───────────────────────────────────────────
-    # Short wire from 12 V tap down to U2 VIN:
-    #   • separates the IC body from the bus (pin-1 label no longer overlays the rail)
-    #   • lowers the 3.3 V rail so U3 has vertical clearance from the 12 V line
+    # Wire from 12 V tap down to U2 VIN — separates IC body from the bus.
+    # IMPORTANT: use explicit .at() on the Ic so it is not rotated by the
+    # preceding downward Line (schemdraw inherits direction otherwise).
     d.add(elm.Line().at((X_U2, Y_12V)).down().length(2.0).color(C12))
     u2 = d.add(elm.Ic(
         pins=[
-            elm.IcPin(name='VIN',  side='top',   pin='1', anchorname='VIN'),
-            elm.IcPin(name='VOUT', side='right', pin='2', anchorname='VOUT'),
-            elm.IcPin(name='GND',  side='left',  pin='3', anchorname='GND'),
+            elm.IcPin(name='VIN',  side='top',    pin='1', anchorname='VIN'),
+            elm.IcPin(name='GND',  side='bottom', pin='2', anchorname='GND'),
+            elm.IcPin(name='VOUT', side='bottom', pin='3', anchorname='VOUT'),
         ],
         edgepadH=0.5, edgepadW=0.9, pinspacing=1.0,
         label='U2\nLM2596S\n12 V → 3.3 V',
-    ).anchor('VIN'))
+    ).right().at((X_U2, Y_12V - 2.0)).anchor('VIN'))   # .right() resets inherited DOWN direction
 
-    d.add(elm.Line().at(u2.GND).left().length(0.5).color(CGND))
+    # GND stub exits bottom-left → drop to GND symbol
+    d.add(elm.Line().at(u2.GND).down().length(0.4).color(CGND))
     d.add(elm.Ground().color(CGND))
 
     # ── 3.3 V bus from U2 ────────────────────────────────────────────────────
